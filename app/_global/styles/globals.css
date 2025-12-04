@@ -1,0 +1,199 @@
+@import "tailwindcss";
+
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+@font-face {
+  font-family: "Lato Numbers";
+  src: url("/fonts/Lato-Numeric-Regular-Subset.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Lato Numbers";
+  src: url("/fonts/Lato-Numeric-Medium-Subset.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Lato Numbers";
+  src: url("/fonts/Lato-Numeric-Bold-Subset.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Lato Numbers";
+  src: url("/fonts/Lato-Numeric-Black-Subset.woff2") format("woff2");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  /*  텍스트 색상  */
+  --color-gray-w900: #333333;
+  --color-gray-w800: #3f4150;
+  --color-gray-w700: #686e75;
+  --color-gray-w600: #8c8d96;
+  --color-gray-w400: #b2b3b9;
+  --color-gray-w200: #dddddd;
+  /*  배경 및 보더  */
+  --color-divider: #fafafa;
+  --color-border: #e9ecef;
+  /*  액센트 색상  */
+  --color-accent-red: #e34850;
+  --color-accent-cyan: #00b8d4;
+  --color-accent-navy: #002d9c;
+  --color-accent-purple: #a56eff;
+  /*  경고 색상  */
+  --color-error-700: #ff0404;
+  --color-warning-700: #fa8c16;
+  --color-warning-600: #fba52d;
+  --color-warning-500: #fdbf45;
+  --color-warning-400: #fed85c;
+  --color-warning-300: #fff173;
+  /*  브랜드 색상  */
+  --color-primary-900: #2962ff;
+  --color-primary-850: #2684ff;
+  --color-primary-800: #2589f4;
+  --color-primary-750: #4590ff;
+  --color-primary-700: #66b6ff;
+  --color-primary-650: #86a7cc;
+  --color-primary-600: #82b1ff;
+  --color-primary-550: #a1c5ff;
+  --color-primary-500: #97cdff;
+  --color-primary-450: #b4d0ff;
+  --color-primary-400: #b1daff;
+  --color-primary-300: #c6dbff;
+  --color-primary-200: #e0e9f2;
+  --color-primary-100: #e1ecff;
+  /*  폰트 패밀리  */
+  --font-family-numbers:
+    "Lato Numbers", var(--font-noto-sans-kr), ui-monospace, monospace;
+}
+
+@layer base {
+  button {
+    cursor: pointer;
+  }
+
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer utilities {
+  /* Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+}
+
+@layer components {
+  /*  Font Sizes  */
+  .typo-xlarge {
+    font-size: 1.5rem; /* 24px */
+    line-height: 2.125rem; /* 34px */
+    letter-spacing: -0.05em;
+  }
+
+  .typo-large {
+    font-size: 1.25rem; /* 20px */
+    line-height: 1.75rem; /* 28px */
+    letter-spacing: -0.05em;
+  }
+
+  .typo-medium {
+    font-size: 1.125rem; /* 18px */
+    line-height: 1.75rem; /* 28px */
+    letter-spacing: -0.03em;
+  }
+
+  .typo-base {
+    font-size: 1rem; /* 16px */
+    line-height: 1.5rem; /* 24px */
+    letter-spacing: -0.03em;
+  }
+
+  .typo-small {
+    font-size: 0.875rem; /* 14px */
+    line-height: 1.5rem; /* 24px */
+    letter-spacing: -0.03em;
+  }
+
+  .typo-tiny {
+    font-size: 0.8125rem; /* 13px */
+    line-height: 1.25rem; /* 20px */
+    letter-spacing: -0.03em;
+  }
+
+  .typo-micro {
+    font-size: 0.75rem; /* 12px */
+    line-height: 1rem; /* 16px */
+    letter-spacing: -0.03em;
+  }
+
+  /*  Font-num Sizes  */
+  .font-numbers {
+    font-family: "Lato Numbers", "Noto Sans KR", ui-monospace, monospace;
+    font-feature-settings: "tnum";
+  }
+
+  .typo-num-large {
+    font-family: "Lato Numbers", "Noto Sans KR", ui-monospace, monospace;
+    font-feature-settings: "tnum";
+    font-size: 1.5rem;
+    line-height: 2.125rem;
+    letter-spacing: -0.01em;
+  }
+
+  .typo-num-base {
+    font-family: "Lato Numbers", "Noto Sans KR", ui-monospace, monospace;
+    font-feature-settings: "tnum";
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 100%;
+  display: inline-block;
+  animation: sk-bouncedelay 1.4s infinite ease-in-out both;
+}
+
+.dot:nth-child(1) {
+  animation-delay: 0s;
+}
+.dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+.dot:nth-child(3) {
+  animation-delay: -0.32s;
+}
+
+@keyframes sk-bouncedelay {
+  0%,
+  80%,
+  100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}

@@ -1,0 +1,64 @@
+name: production
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+    env:
+      DEPLOY_ENV: prod
+      PROJECT_ID: lauren-staging
+      REGION: asia-northeast3
+      REPOSITORY: woori
+      IMAGE: front
+      GCP_WORKLOAD_IDENTITY_PROVIDER: projects/458046725650/locations/global/workloadIdentityPools/github/providers/github-oidc-provider
+      GCP_SA: github-workflow@lauren-staging.iam.gserviceaccount.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # https://github.com/google-github-actions/auth?tab=readme-ov-file#direct-wif
+      - name: GCP Authenticate
+        uses: google-github-actions/auth@v3
+        id: auth
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+          workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.GCP_SA }}
+          token_format: access_token
+
+      # https://github.com/docker/login-action?tab=readme-ov-file#google-artifact-registry-gar
+      - name: Login to Artifact Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGION }}-docker.pkg.dev
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # https://github.com/docker/build-push-action
+      - name: Build and Push Docker Image to Artifact Registry
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          context: .
+          file: docker/Dockerfile
+          # TODO: Using github secret for backend URL `NEXT_PUBLIC_BACKEND_URL=${{ secrets.BACKEND_URL_PROD }}`
+          build-args: |
+            NEXT_PUBLIC_BACKEND_URL=http://20.196.144.224
+          tags: |
+            ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE }}-${{ env.DEPLOY_ENV }}:latest
+            ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE }}-${{ env.DEPLOY_ENV }}:${{ github.sha }}
+
+      # TODO: Deploy to Cloud Run
