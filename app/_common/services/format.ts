@@ -1,7 +1,7 @@
 export const formatCurrency = (value: number): string => {
-  if (value >= 1e12) return `${(value / 1e12).toFixed(1)}조원`;
-  if (value >= 1e9) return `${(value / 1e9).toFixed(1)}조원`;
-  if (value >= 1e6) return `${(value / 1e6).toFixed(1)}백만원`;
+  if (value >= 1e12) return `${(value / 1e12).toLocaleString('ko-KR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}조원`;
+  if (value >= 1e9) return `${(value / 1e9).toLocaleString('ko-KR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}조원`;
+  if (value >= 1e6) return `${(value / 1e6).toLocaleString('ko-KR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}백만원`;
   return `${value.toLocaleString()}원`;
 };
 

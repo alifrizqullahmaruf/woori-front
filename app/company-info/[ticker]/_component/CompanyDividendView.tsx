@@ -133,7 +133,7 @@ export default function CompanyDividendView() {
         !dividendsEventsData?.items?.length && !dividendsTTMData?.items?.length
       }
       emptyComponent={
-        <div className="flex flex-col items-center justify-center py-16">
+        <div className="flex flex-col items-center justify-center py-10">
           <Nodividend className="size-10 text-gray-400" />
           <p className="text-base text-black">
             이 회사는 배당 내역이 없습니다.

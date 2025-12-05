@@ -15,7 +15,6 @@ import { DataStateHandler } from "@/app/_common/component/molecules/DataStateHan
 import { useMemo } from "react";
 import {
   formatCurrency,
-  formatPercentage,
 } from "@/app/_common/services/format";
 import {
   fromFinnhubMillionToWon,
@@ -272,7 +271,7 @@ export default function CompanyOverviewView() {
         category: "유동비율",
         value:
           fundamentalsMap?.["Current ratio"] !== undefined
-            ? formatPercentage(fundamentalsMap["Current ratio"])
+            ? fundamentalsMap["Current ratio"].toFixed(2)+"%"
             : "-",
       },
     ],

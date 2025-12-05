@@ -150,7 +150,7 @@ export default function CommonSection({
         compareIdx = idx - 1;
       }
 
-      if (compareIdx < 0) return "-";
+      if (compareIdx < 0) return "";
 
       const compareValue = allValues[compareIdx];
       if (compareValue === 0) return "0%";
