@@ -5,5 +5,5 @@ export function fromFinnhubMillionToWon(v?: number | null) {
 
 export function formatWonRaw(won?: number | null) {
   if (won === null || won === undefined || Number.isNaN(won)) return null;
-  return `${won.toLocaleString("ko-KR")}원`;
+  return `${Math.round(won).toLocaleString("ko-KR")}원`;
 }

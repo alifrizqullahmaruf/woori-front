@@ -264,7 +264,7 @@ export default function CompanyOverviewView() {
         category: "발행주식",
         value:
           latestOutstandingShares?.shares_outstanding != null
-            ? `${latestOutstandingShares.shares_outstanding.toLocaleString()}주`
+            ? `${Math.round(latestOutstandingShares.shares_outstanding).toLocaleString()}주`
             : "-",
       },
       {
