@@ -129,12 +129,12 @@ export default function CommonSection({
         }
       }
 
-      // ROE ROA
+      //  ROE and ROA 
       if ((mt === "ROE" || mt === "ROA") && periodMode === "Quarterly") {
         value = value;
       }
 
-      // Multiply Current Ratio
+      // Current Ratio 
       if (mt === "Current ratio") {
         value = value;
       }
