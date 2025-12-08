@@ -292,12 +292,31 @@ export default function CompanyOverviewView() {
     }));
   }, [revenueBreakdown]);
 
-  // Get latest report_date from revenue segments
+  // Get latest report_date from revenue segments that match the displayed data
   const dataReferenceDate = useMemo(() => {
     if (!revenueSegmentsData?.items?.length) return null;
 
-    // Find the most recent report_date from all items
-    const latestDate = revenueSegmentsData.items.reduce((latest, item) => {
+    // Filter only FY (Full Year) data - same as revenueBreakdown
+    const fyData = revenueSegmentsData.items.filter(
+      (item) => item.fiscal_period === "FY"
+    );
+
+    if (!fyData.length) return null;
+
+    // Find the latest fiscal year from FY data
+    const latestFiscalYear = Math.max(
+      ...fyData.map((item) => item.fiscal_year)
+    );
+
+    // Filter items from the latest fiscal year with FY period
+    const latestPeriodData = fyData.filter(
+      (item) => item.fiscal_year === latestFiscalYear
+    );
+
+    if (!latestPeriodData.length) return null;
+
+    // Find the most recent report_date from the filtered data
+    const latestDate = latestPeriodData.reduce((latest, item) => {
       if (!item.report_date) return latest;
       if (!latest) return item.report_date;
       return new Date(item.report_date) > new Date(latest)
