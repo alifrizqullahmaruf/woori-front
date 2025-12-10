@@ -288,7 +288,8 @@ export default function CompanyOverviewView() {
   const revenueBreakdownContents: DummyTableContents[] = useMemo(() => {
     return revenueBreakdown.map((segment) => ({
       category: segment.name,
-      value: Math.round(segment.value).toLocaleString("ko-KR"),
+      // Multiply by 1000 to convert from millions to thousands, then apply thousand separator
+      value: Math.round(segment.value * 1000).toLocaleString("ko-KR"),
     }));
   }, [revenueBreakdown]);
 
