@@ -288,7 +288,7 @@ export default function CompanyOverviewView() {
   const revenueBreakdownContents: DummyTableContents[] = useMemo(() => {
     return revenueBreakdown.map((segment) => ({
       category: segment.name,
-      value: segment.value.toLocaleString("ko-KR"),
+      value: Math.round(segment.value).toLocaleString("ko-KR"),
     }));
   }, [revenueBreakdown]);
 

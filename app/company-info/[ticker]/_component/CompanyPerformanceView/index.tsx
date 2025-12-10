@@ -28,29 +28,6 @@ export default function CompanyPerformanceView() {
 
   const { data: fundamentalsData, isLoading, error } = useFundamentals(ticker);
 
-  // Get latest report_date
-  const dataReferenceDate = useMemo(() => {
-    if (!fundamentalsData?.items?.length) return null;
-
-    // Find the most recent report_date from all items
-    const latestDate = fundamentalsData.items.reduce((latest, item) => {
-      if (!item.report_date) return latest;
-      if (!latest) return item.report_date;
-      return new Date(item.report_date) > new Date(latest)
-        ? item.report_date
-        : latest;
-    }, null as string | null);
-
-    if (!latestDate) return null;
-
-    const date = new Date(latestDate);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-
-    return `${year}-${month}-${day}`;
-  }, [fundamentalsData]);
-
   return (
     <DataStateHandler
       isLoading={isLoading}
@@ -71,11 +48,6 @@ export default function CompanyPerformanceView() {
           maxPoints={5}
         />
       </article>
-      {dataReferenceDate && (
-        <h1 className="typo-micro mb-[18px] text-gray-w600 mt-6 mx-6">
-          데이터 기준일: {dataReferenceDate}
-        </h1>
-      )}
     </DataStateHandler>
   );
 }

@@ -12,6 +12,7 @@ import LineChart from "@/app/company-info/[ticker]/_component/CompanyPerformance
 import Selector from "@/app/company-info/[ticker]/_component/CompanyPerformanceView/Selector";
 import { useFundamentals } from "@/app/_common/hooks/useFundamentals";
 import { useExchangeRate } from "@/app/_common/hooks/useForex";
+import { useDailyFinancialMetrics } from "@/app/_common/hooks/useDailyFinancialMetrics";
 import { HelpDescriptions } from "@/app/_common/types";
 
 const BarChart = dynamic(() => import("./BarChart"), {
@@ -37,6 +38,10 @@ export default function CommonSection({
 
   const { data: fundamentalsData, isLoading, error } = useFundamentals(ticker);
   const { exchangeRate } = useExchangeRate();
+  const {
+    data: dailyMetricsData,
+    isLoading: isLoadingDailyMetrics
+  } = useDailyFinancialMetrics(ticker);
 
   const [isComparePeriod, toggleComparePeriod] = useHandlePeriodCompare();
   const [activeItem, changeActiveItem] = useHandleTab(tabList);
@@ -83,10 +88,36 @@ export default function CommonSection({
     [activeItem],
   );
 
+  // Extract Current PER & PBR from daily financial metrics
+  const { currentPER, currentPBR, currentMetricDate } = useMemo(() => {
+    if (!dailyMetricsData?.items?.length) {
+      return { currentPER: null, currentPBR: null, currentMetricDate: null };
+    }
+
+    // Find PER TTM
+    const perItem = dailyMetricsData.items.find(
+      (item) => item.metric_type === "PER TTM"
+    );
+
+    // Find PBR Current
+    const pbrItem = dailyMetricsData.items.find(
+      (item) => item.metric_type === "PBR Current"
+    );
+
+    // Get latest metric_date
+    const latestDate = perItem?.metric_date || pbrItem?.metric_date || null;
+
+    return {
+      currentPER: perItem?.metric_value ?? null,
+      currentPBR: pbrItem?.metric_value ?? null,
+      currentMetricDate: latestDate,
+    };
+  }, [dailyMetricsData]);
+
   const chartData = useMemo(() => {
     const mt = metricType;
     if (!mt) {
-      return { values: [], percentages: [], labels: [] };
+      return { values: [], percentages: [], labels: [], dataReferenceDate: null };
     }
 
     const allowedPeriods =
@@ -97,7 +128,7 @@ export default function CommonSection({
     );
 
     if (!sourceItems || sourceItems.length === 0) {
-      return { values: [], percentages: [], labels: [] };
+      return { values: [], percentages: [], labels: [], dataReferenceDate: null };
     }
 
     const sortedItems = [...sourceItems].sort((a, b) => {
@@ -159,18 +190,86 @@ export default function CommonSection({
       return `${change.toFixed(2)}%`;
     });
 
-    const recentItems = sortedItems.slice(-maxPoints);
-    const values = allValues.slice(-maxPoints);
-    const percentages = allPercentages.slice(-maxPoints);
+    // Check if this is PER or PBR metric
+    const isPERorPBR = mt === "PER Quarterly" || mt === "PER Yearly" || mt === "PBR";
+    const hasCurrentValue = (mt.includes("PER") && currentPER !== null) ||
+                            (mt === "PBR" && currentPBR !== null);
 
-    const labels = recentItems.map((i) => {
-      const d = new Date(i.report_date);
-      return `${(d.getFullYear() % 100)
-        .toString()
-        .padStart(2, "0")}년 ${d.getMonth() + 1}월`;
-    });
+    let recentItems, values, percentages, labels, dataReferenceDate;
 
-    return { values, percentages, labels };
+    if (isPERorPBR && hasCurrentValue) {
+      // For PER/PBR: Take (maxPoints - 1) historical data + 1 current value
+      recentItems = sortedItems.slice(-(maxPoints - 1));
+      const historicalValues = allValues.slice(-(maxPoints - 1));
+      const historicalPercentages = allPercentages.slice(-(maxPoints - 1));
+
+      // Get current value
+      const currentValue = mt.includes("PER") ? currentPER : currentPBR;
+
+      // Calculate percentage change for current value
+      const lastHistoricalValue = historicalValues[historicalValues.length - 1];
+      const currentPercentage = lastHistoricalValue
+        ? `${(((currentValue! - lastHistoricalValue) / Math.abs(lastHistoricalValue)) * 100).toFixed(2)}%`
+        : "";
+
+      // Append current value as the last data point
+      values = [...historicalValues, currentValue!];
+      percentages = [...historicalPercentages, currentPercentage];
+
+      // Create labels
+      const historicalLabels = recentItems.map((i) => {
+        const d = new Date(i.report_date);
+        return `${(d.getFullYear() % 100).toString().padStart(2, "0")}년 ${d.getMonth() + 1}월`;
+      });
+      labels = [...historicalLabels, "현재"]; // "현재" = Current
+
+      // Use current metric date as reference
+      if (currentMetricDate) {
+        const date = new Date(currentMetricDate);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        dataReferenceDate = `${year}-${month}-${day}`;
+      } else {
+        dataReferenceDate = null;
+      }
+
+    } else {
+      // For other metrics: use original logic
+      recentItems = sortedItems.slice(-maxPoints);
+      values = allValues.slice(-maxPoints);
+      percentages = allPercentages.slice(-maxPoints);
+
+      labels = recentItems.map((i) => {
+        const d = new Date(i.report_date);
+        return `${(d.getFullYear() % 100)
+          .toString()
+          .padStart(2, "0")}년 ${d.getMonth() + 1}월`;
+      });
+
+      // Calculate data reference date from the displayed data (recentItems)
+      dataReferenceDate = null;
+      if (recentItems.length > 0) {
+        // Find the most recent report_date from the displayed items
+        const latestDate = recentItems.reduce((latest, item) => {
+          if (!item.report_date) return latest;
+          if (!latest) return item.report_date;
+          return new Date(item.report_date) > new Date(latest)
+            ? item.report_date
+            : latest;
+        }, null as string | null);
+
+        if (latestDate) {
+          const date = new Date(latestDate);
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          dataReferenceDate = `${year}-${month}-${day}`;
+        }
+      }
+    }
+
+    return { values, percentages, labels, dataReferenceDate };
   }, [
     metricType,
     fundamentalsData,
@@ -179,6 +278,9 @@ export default function CommonSection({
     maxPoints,
     isComparePeriod,
     exchangeRate,
+    currentPER,
+    currentPBR,
+    currentMetricDate,
   ]);
 
   const scaleForBar = useMemo(
@@ -295,7 +397,7 @@ export default function CommonSection({
 
       <div className="m-6 h-[212px] px-3">
         <DataStateHandler
-          isLoading={isLoading}
+          isLoading={isLoading || isLoadingDailyMetrics}
           error={error}
           isEmpty={chartData.values.length === 0}
         >
@@ -321,6 +423,14 @@ export default function CommonSection({
           )}
         </DataStateHandler>
       </div>
+
+      {chartData.dataReferenceDate && (
+        <div className="px-6 pb-4">
+          <p className="typo-micro text-gray-w600">
+            데이터 기준일: {chartData.dataReferenceDate}
+          </p>
+        </div>
+      )}
 
       <hr className="bg-divider h-2 border-none" />
     </section>
