@@ -20,6 +20,19 @@ export default function CompanySearchPageClient() {
   const [query, setQuery] = useState<string>(searchParams.get("q") || "");
   const [activeIndex, setActiveIndex] = useState<number>(-1);
   const [isFocused, setIsFocused] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768); // Mobile if width < 768px
+    };
+
+    checkMobile(); // Check on mount
+    window.addEventListener('resize', checkMobile);
+
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const debouncedQuery = useDebounce(query, 300);
 
@@ -53,11 +66,12 @@ export default function CompanySearchPageClient() {
     inputRef.current?.focus();
   }, []);
 
-  // Helper function to truncate text
-  const truncateText = (text: string, maxLength: number = 20): string => {
+  // Helper function to truncate text (only on mobile)
+  const truncateText = useCallback((text: string, maxLength: number = 30): string => {
+    if (!isMobile) return text; // No truncation on desktop
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + '...';
-  };
+  }, [isMobile]);
 
   // Recompute filtered options from debounced query
   const filteredOptions = useMemo(() => {
@@ -76,7 +90,7 @@ export default function CompanySearchPageClient() {
         exchange: c.exchange,
       };
     });
-  }, [debouncedQuery, searchResults]);
+  }, [debouncedQuery, searchResults, truncateText]);
 
   const isHistoryMode = query.trim() === "";
 
@@ -87,7 +101,7 @@ export default function CompanySearchPageClient() {
         const company = lastSpace > -1 ? h.label.slice(0, lastSpace) : h.label;
         return {
           company,
-          companyDisplay: truncateText(company, 20),
+          companyDisplay: truncateText(company, 30),
           ticker: h.ticker,
           fallbackUrl: h.fallbackUrl,
           exchange: h.exchange,
@@ -99,7 +113,7 @@ export default function CompanySearchPageClient() {
       ...opt,
       isHistory: false as const,
     }));
-  }, [isHistoryMode, history, filteredOptions]);
+  }, [isHistoryMode, history, filteredOptions, truncateText]);
 
   const hasQuery = query.trim().length > 0;
 
