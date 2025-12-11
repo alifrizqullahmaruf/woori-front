@@ -32,7 +32,7 @@ export interface CompanySearchItem {
   company_name: string;
   company_name_kr: string;
   logo_url: string;
-  exchange?: string; 
+  exchange?: string;
 }
 
 export type CompanySearchResponse = CompanySearchItem[];
@@ -42,8 +42,29 @@ export interface SearchHistoryItem {
   label: string;
   logo?: string;
   fallbackUrl?: string;
+  exchange?: string;
 }
 
+function guessExchange(ticker: string): string | undefined {
+  const upper = ticker.toUpperCase();
+  
+  if (/^\d{6}$/.test(upper)) {
+    return 'KRX';
+  }
+  if (/^[A-Z]{1,5}(-[A-Z])?$/.test(upper)) {
+    if (upper.length === 1) {
+      return 'NYSE';
+    }
+    if (upper.length <= 3) {
+      return undefined; // Let it try both
+    }
+    if (upper.length >= 4) {
+      return 'NASDAQ';
+    }
+  }
+  
+  return undefined;
+}
 
 export class CompaniesService {
   async getAll(): Promise<CompaniesData> {
@@ -88,9 +109,21 @@ export class CompaniesService {
     const results = await apiRequest<CompanySearchResponse>(
       `/companies/search?q=${encodeURIComponent(trimmed)}&limit=${limit}`,
     );
-    return results.map((item) => ({
-      ...item,
-    }));
+    return results.map((item) => {
+      if (item.exchange) {
+        return item;
+      }
+      const guessedExchange = guessExchange(item.ticker);
+      
+      if (process.env.NODE_ENV === 'development' && guessedExchange) {
+        console.log(`[Guess] ${item.ticker} -> ${guessedExchange}`);
+      }
+      
+      return {
+        ...item,
+        exchange: guessedExchange,
+      };
+    });
   }
 }
 

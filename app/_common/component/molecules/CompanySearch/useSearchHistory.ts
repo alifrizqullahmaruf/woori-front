@@ -5,16 +5,17 @@ export interface SearchHistoryItem {
   label: string;
   logo?: string;
   fallbackUrl?: string;
+  exchange?: string;
 }
 
 export function useSearchHistory(storageKey: string, maxItems: number = 5) {
   // Initialize state with a function to avoid SSR issues
   const [history, setHistory] = useState<SearchHistoryItem[]>(() => {
     // Only access localStorage on client-side
-    if (typeof window === 'undefined') {
+    if (typeof window === "undefined") {
       return [];
     }
-    
+
     try {
       const stored = localStorage.getItem(storageKey);
       if (stored) {
@@ -30,13 +31,13 @@ export function useSearchHistory(storageKey: string, maxItems: number = 5) {
   // Save history to localStorage whenever it changes
   useEffect(() => {
     // Only run on client-side
-    if (typeof window === 'undefined') {
+    if (typeof window === "undefined") {
       return;
     }
 
     try {
       localStorage.setItem(storageKey, JSON.stringify(history));
-      console.log('History saved to localStorage:', history); // Debug log
+      console.log("History saved to localStorage:", history); // Debug log
     } catch (error) {
       console.error("Failed to save search history:", error);
     }
@@ -47,15 +48,15 @@ export function useSearchHistory(storageKey: string, maxItems: number = 5) {
       setHistory((prev) => {
         // Remove existing item with same ticker
         const filtered = prev.filter((h) => h.ticker !== item.ticker);
-        
+
         // Add new item to front
         const updated = [item, ...filtered];
-        
+
         // Limit to maxItems
         return updated.slice(0, maxItems);
       });
     },
-    [maxItems]
+    [maxItems],
   );
 
   const removeFromHistory = useCallback((ticker: string) => {
@@ -65,7 +66,7 @@ export function useSearchHistory(storageKey: string, maxItems: number = 5) {
   const clearHistory = useCallback(() => {
     setHistory([]);
     // Also clear from localStorage immediately
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       try {
         localStorage.removeItem(storageKey);
       } catch (error) {

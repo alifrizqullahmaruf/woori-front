@@ -53,6 +53,12 @@ export default function CompanySearchPageClient() {
     inputRef.current?.focus();
   }, []);
 
+  // Helper function to truncate text
+  const truncateText = (text: string, maxLength: number = 20): string => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  };
+
   // Recompute filtered options from debounced query
   const filteredOptions = useMemo(() => {
     const q = debouncedQuery.trim();
@@ -60,11 +66,16 @@ export default function CompanySearchPageClient() {
 
     const companies = searchResults || [];
 
-    return companies.map((c) => ({
-      company: c.company_name_kr || c.company_name || c.ticker,
-      ticker: c.ticker,
-      fallbackUrl: c.logo_url, 
-    }));
+    return companies.map((c) => {
+      const companyName = c.company_name_kr || c.company_name || c.ticker;
+      return {
+        company: companyName,
+        companyDisplay: truncateText(companyName, 30),
+        ticker: c.ticker,
+        fallbackUrl: c.logo_url,
+        exchange: c.exchange,
+      };
+    });
   }, [debouncedQuery, searchResults]);
 
   const isHistoryMode = query.trim() === "";
@@ -76,8 +87,10 @@ export default function CompanySearchPageClient() {
         const company = lastSpace > -1 ? h.label.slice(0, lastSpace) : h.label;
         return {
           company,
+          companyDisplay: truncateText(company, 20),
           ticker: h.ticker,
           fallbackUrl: h.fallbackUrl,
+          exchange: h.exchange,
           isHistory: true as const,
         };
       });
@@ -91,12 +104,18 @@ export default function CompanySearchPageClient() {
   const hasQuery = query.trim().length > 0;
 
   const handleSelect = useCallback(
-    (ticker: string, company: string, fallbackUrl?: string) => {
+    (
+      ticker: string,
+      company: string,
+      fallbackUrl?: string,
+      exchange?: string,
+    ) => {
       if (!ticker) return;
       addHistory({
         ticker,
         label: `${company} ${ticker}`,
         fallbackUrl,
+        exchange, // ADD exchange to history
       });
       router.push(`/company-info/${ticker}`);
     },
@@ -127,6 +146,7 @@ export default function CompanySearchPageClient() {
               selected.ticker,
               selected.company,
               selected.fallbackUrl,
+              selected.exchange,
             );
           } else if (displayOptions.length > 0) {
             const first = displayOptions[0];
@@ -134,6 +154,7 @@ export default function CompanySearchPageClient() {
               first.ticker,
               first.company,
               first.fallbackUrl,
+              first.exchange,
             );
           }
           break;
@@ -241,6 +262,7 @@ export default function CompanySearchPageClient() {
                       option.ticker,
                       option.company,
                       option.fallbackUrl,
+                      option.exchange,
                     )
                   }
                 >
@@ -249,11 +271,12 @@ export default function CompanySearchPageClient() {
                       ticker={option.ticker}
                       fallbackUrl={option.fallbackUrl}
                       alt={option.company}
+                      exchange={option.exchange}
                       size={32}
                     />
                     <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
                       <span className="truncate text-sm font-medium text-gray-800">
-                        {option.company}
+                        {option.companyDisplay}
                       </span>
                       <span className="shrink-0 text-sm text-gray-800">
                         {option.ticker}
@@ -325,6 +348,7 @@ export default function CompanySearchPageClient() {
                       option.ticker,
                       option.company,
                       option.fallbackUrl,
+                      option.exchange,
                     )
                   }
                 >
@@ -332,11 +356,12 @@ export default function CompanySearchPageClient() {
                     ticker={option.ticker}
                     fallbackUrl={option.fallbackUrl}
                     alt={option.company}
+                    exchange={option.exchange}
                     size={32}
                   />
                   <div className="flex w-full items-center justify-between gap-2">
                     <span className="truncate text-sm font-medium text-gray-800">
-                      {option.company}
+                      {option.companyDisplay}
                     </span>
                     <span className="shrink-0 text-sm text-gray-800">
                       {option.ticker}

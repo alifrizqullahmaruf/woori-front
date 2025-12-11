@@ -26,7 +26,7 @@ export default function FormattedTableRow({
   return (
     <tr className={"typo-small flex w-full items-start justify-between"}>
       <th className={`text-gray-w600 flex font-medium ${headingClassName ?? ""}`}>
-        <div className={"flex items-center gap-1"}>
+        <div className={"flex gap-1 pr-6"}>
           <span>{heading}</span>
           {helpText && <InfoButton modalDescription={helpText} />}
         </div>
