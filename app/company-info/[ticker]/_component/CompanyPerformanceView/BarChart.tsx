@@ -25,6 +25,24 @@ export interface CommonChartProps {
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, ChartDataLabels);
 
+// Utility function to format numbers with thousand separators
+const formatNumberWithCommas = (value: number, decimals: number = 1): string => {
+  if (!Number.isFinite(value)) return "0";
+
+  const fixed = value.toFixed(decimals);
+  const [integerPart, decimalPart] = fixed.split('.');
+
+  // Add thousand separators to integer part
+  const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+  // Return with decimal part if not zero
+  if (decimalPart && parseInt(decimalPart) !== 0) {
+    return `${formattedInteger}.${decimalPart}`;
+  }
+
+  return formattedInteger;
+};
+
 export default function BarChart({
   isUpdateChart = false,
   rawData,
@@ -94,9 +112,7 @@ export default function BarChart({
             label: (item: TooltipItem<"bar">) => {
               const dataIndex = item.dataIndex ?? 0;
               const value = displayValues[dataIndex] ?? 0;
-              const formattedValue = Number.isFinite(value)
-                ? value.toFixed(valueDecimals)
-                : "0";
+              const formattedValue = formatNumberWithCommas(value, valueDecimals);
               const prefix = value > 0 ? "+" : "";
               const valueText = valueSuffix
                 ? `${prefix}${formattedValue}${valueSuffix}`
@@ -140,9 +156,7 @@ export default function BarChart({
               formatter: (_computedBarHeight: unknown, ctx: DataLabelsContext) => {
                 const dataIndex = ctx.dataIndex ?? 0;
                 const value = displayValues[dataIndex] ?? 0;
-                const formattedValue = Number.isFinite(value)
-                  ? value.toFixed(valueDecimals)
-                  : "0";
+                const formattedValue = formatNumberWithCommas(value, valueDecimals);
                 const prefix = value > 0 ? "" : "";
                 return valueSuffix
                   ? `${prefix}${formattedValue}${valueSuffix}`

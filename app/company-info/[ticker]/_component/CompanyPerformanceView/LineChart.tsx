@@ -35,7 +35,16 @@ ChartJS.register(
 );
 
 function fmtNumber(n: number) {
-  return Number.isFinite(n) ? n.toFixed(2) : "0.00";
+  if (!Number.isFinite(n)) return "0.00";
+
+  const fixed = n.toFixed(2);
+  const [integerPart, decimalPart] = fixed.split('.');
+
+  // Add thousand separators to integer part
+  const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+  // Return with decimal part
+  return decimalPart ? `${formattedInteger}.${decimalPart}` : formattedInteger;
 }
 
 function computePercentsFromRaw(raw: number[]) {
